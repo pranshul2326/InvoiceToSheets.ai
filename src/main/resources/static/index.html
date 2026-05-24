@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvoiceToSheets AI - Stop Manual Data Entry</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        #demoSection {
+            display: none;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        #demoSection.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-50 font-sans antialiased flex flex-col">
+
+    <main class="max-w-xl mx-auto px-6 py-20 text-center selection:bg-indigo-500 selection:text-white">
+        
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-indigo-400 bg-indigo-500/10 rounded-full ring-1 ring-inset ring-indigo-500/20 mb-6">
+            For Shopify & E-commerce Sellers
+        </span>
+
+        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+            Stop manually typing supplier invoices into Excel.
+        </h1>
+
+        <p class="text-lg text-zinc-400 mb-10 leading-relaxed">
+            Forward any messy supplier PDF invoice or chaotic wholesale spreadsheet to your custom app inbox. Our AI instantly extracts line items, quantities, SKUs, and prices into a perfectly formatted Google Sheet or CSV. 100% hands-free.
+        </p>
+
+        <div class="text-left space-y-4 mb-12 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
+            <div class="flex items-start gap-3">
+                <span class="text-indigo-400 font-bold mt-0.5">✓</span>
+                <p class="text-sm text-zinc-300"><strong class="text-zinc-100">Zero Template Setup:</strong> Works on unpredictable vendor layouts, unformatted text, or messy international invoices without setting up rigid parsing rules.</p>
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="text-indigo-400 font-bold mt-0.5">✓</span>
+                <p class="text-sm text-zinc-300"><strong class="text-zinc-100">Line-Item Accurate:</strong> Safely isolates individual table rows, variants, and bulk discounts without human data-entry mistakes.</p>
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="text-indigo-400 font-bold mt-0.5">✓</span>
+                <p class="text-sm text-zinc-300"><strong class="text-zinc-100">Ready to Sync:</strong> Formats outputs clean enough to instantly update your Shopify inventory, QuickBooks, or internal warehouse trackers.</p>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <a href="#" target="_blank" class="inline-block w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold rounded-xl shadow-lg transition-colors duration-150 text-center">
+                Get Early Access + 500 Free Pages ($9)
+            </a>
+            <br>
+            <button id="demoBtn" onclick="revealDemo()" class="inline-block w-full sm:w-auto px-8 py-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-indigo-500 text-zinc-200 font-semibold rounded-xl shadow-lg transition-all duration-150 text-center">
+                ▶ See Live Demo
+            </button>
+            <p class="text-xs text-zinc-500">
+                One-time payment. Lifetime account access. No recurring subscription.
+            </p>
+        </div>
+
+    </main>
+
+    <!-- DEMO SECTION (hidden until button click) -->
+    <section id="demoSection" class="max-w-4xl mx-auto w-full px-6 pb-20">
+        <div class="text-center mb-8">
+            <span class="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium text-emerald-400 bg-emerald-500/10 rounded-full ring-1 ring-inset ring-emerald-500/20 mb-3">
+                ✦ Live Demo
+            </span>
+            <h2 class="text-2xl font-extrabold text-white">Try it yourself</h2>
+            <p class="text-sm text-zinc-400 mt-1">Upload any invoice file and watch the AI extract it instantly.</p>
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl space-y-8">
+            
+            <!-- DROPZONE -->
+            <div id="dropzone" class="border-2 border-dashed border-zinc-700 hover:border-indigo-500 rounded-xl p-10 text-center cursor-pointer transition-colors group">
+                <input type="file" id="fileInput" accept=".txt,.csv,.pdf,.jpg,.jpeg,.png" class="hidden" />
+                <span class="text-4xl block group-hover:scale-110 transition-transform mb-3">📄</span>
+                <p class="text-sm font-medium text-zinc-200">Click to upload or drag and drop</p>
+                <p class="text-xs text-zinc-500 mt-1">Supports .txt, .csv, .pdf, .jpg, .png invoice files</p>
+            </div>
+
+            <!-- LOADING STATE -->
+            <div id="loadingState" class="hidden text-center py-6 space-y-3">
+                <div class="animate-spin inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+                <p class="text-sm text-zinc-400 font-medium">AI parsing engine extracting line items... hang tight.</p>
+            </div>
+
+            <!-- RESULTS -->
+            <div id="resultsContainer" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-800 pb-4">
+                    <div>
+                        <h3 id="vendorTitle" class="text-lg font-bold text-white">Vendor Name</h3>
+                        <p id="invoiceMeta" class="text-xs text-zinc-400">Invoice: # | Date: </p>
+                    </div>
+                    <button id="downloadBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow transition-colors flex items-center gap-2">
+                        📥 Download Clean CSV
+                    </button>
+                </div>
+                <div class="overflow-x-auto rounded-xl border border-zinc-800">
+                    <table class="w-full text-left text-sm text-zinc-300">
+                        <thead class="bg-zinc-950 text-xs uppercase text-zinc-400 font-semibold border-b border-zinc-800">
+                            <tr>
+                                <th class="px-4 py-3">SKU</th>
+                                <th class="px-4 py-3">Description</th>
+                                <th class="px-4 py-3 text-right">Qty</th>
+                                <th class="px-4 py-3 text-right">Unit Price</th>
+                                <th class="px-4 py-3 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-zinc-800 bg-zinc-900/50"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="mt-auto py-6 text-center border-t border-zinc-900 text-xs text-zinc-600">
+        &copy; 2026 InvoiceToSheets AI. Built to eliminate administrative friction.
+    </footer>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const loadingState = document.getElementById('loadingState');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const tableBody = document.getElementById('tableBody');
+        const downloadBtn = document.getElementById('downloadBtn');
+        let parsedDataCache = null;
+
+        function revealDemo() {
+            const section = document.getElementById('demoSection');
+            section.style.display = 'block';
+            requestAnimationFrame(() => requestAnimationFrame(() => section.classList.add('visible')));
+            setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+            document.getElementById('demoBtn').classList.add('hidden');
+        }
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-indigo-500'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-indigo-500'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-indigo-500');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+        function handleFile(file) {
+            dropzone.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            const isPdf = file.name.toLowerCase().endsWith('.pdf');
+            const isImage = file.type.startsWith('image/');
+
+            const sendRequest = async (body, headers) => {
+                try {
+                    const response = await fetch('/api/parse-invoice', { method: 'POST', headers, body });
+                    if (!response.ok) throw new Error('API Error');
+                    parsedDataCache = await response.json();
+                    renderTable(parsedDataCache);
+                } catch {
+                    alert("Extraction failed. Check backend configuration or API connection.");
+                    loadingState.classList.add('hidden');
+                    dropzone.classList.remove('hidden');
+                }
+            };
+
+            if (isPdf) {
+                const formData = new FormData();
+                formData.append('file', file);
+                sendRequest(formData, {});
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e) => sendRequest(
+                    JSON.stringify({ rawText: e.target.result }),
+                    { 'Content-Type': 'application/json' }
+                );
+                if (isImage) {
+                    reader.readAsDataURL(file);
+                } else {
+                    reader.readAsText(file);
+                }
+            }
+        }
+
+        function renderTable(data) {
+            loadingState.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            document.getElementById('vendorTitle').innerText = data.vendor_name || 'Unknown Vendor';
+            document.getElementById('invoiceMeta').innerText = `Invoice #: ${data.invoice_number || 'N/A'} | Date: ${data.invoice_date || 'N/A'} | Currency: ${data.currency}`;
+            tableBody.innerHTML = data.line_items.map(item => `
+                <tr class="hover:bg-zinc-800/30 transition-colors">
+                    <td class="px-4 py-3 font-mono text-xs text-zinc-400">${item.sku || '—'}</td>
+                    <td class="px-4 py-3 font-medium text-zinc-200">${item.description}</td>
+                    <td class="px-4 py-3 text-right">${item.quantity}</td>
+                    <td class="px-4 py-3 text-right">${item.unit_price.toFixed(2)}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-white">${item.total_amount.toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            if (!parsedDataCache || !parsedDataCache.line_items) return;
+
+            let csv = "Description,Quantity,Unit Price,Total Price\n";
+            let calculatedGrandTotal = 0;
+
+            parsedDataCache.line_items.forEach(i => {
+                const description = i.description.replace(/"/g, '""');
+                const quantity = i.quantity;
+                const unitPrice = i.unit_price.toFixed(2);
+                const lineTotal = i.total_amount.toFixed(2);
+                calculatedGrandTotal += i.total_amount;
+                csv += `"${description}",${quantity},${unitPrice},${lineTotal}\n`;
+            });
+
+            csv += `\n"Grand Total",,,${calculatedGrandTotal.toFixed(2)}\n`;
+
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
+            const fileName = parsedDataCache.invoice_number && parsedDataCache.invoice_number !== 'N/A'
+                ? `invoice_${parsedDataCache.invoice_number}.csv`
+                : 'invoice_export.csv';
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html>
