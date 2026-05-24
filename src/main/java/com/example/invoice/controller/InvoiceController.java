@@ -23,7 +23,7 @@ public class InvoiceController {
 
     public InvoiceController(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder
-            .defaultSystem("You are an expert B2B visual extraction engine. Analyze the provided image or text invoice, transcribe any messy handwriting, and extract the layout data exactly matching the requested schema fields. Set missing parameters like SKU to null.")
+            .defaultSystem("You are an expert B2B visual extraction engine. Analyze the provided image or text invoice, transcribe any messy handwriting, and extract the layout data exactly matching the requested schema fields. Set missing parameters to null.")
             .build();
     }
 
